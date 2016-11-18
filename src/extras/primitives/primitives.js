@@ -1,5 +1,4 @@
 var AEntity = require('../../core/a-entity');
-var components = require('../../core/component').components;
 var registerElement = require('../../core/a-register-element').registerElement;
 var utils = require('../../utils/');
 
@@ -30,16 +29,21 @@ module.exports.registerPrimitive = function registerPrimitive (name, definition)
 
       createdCallback: {
         value: function () {
+          var self = this;
           if (definition.deprecated) {
             console.warn(definition.deprecated);
           }
+          this.initXXX();
+          this.defaultComponents = utils.extend({}, this.defaultComponents);
+          Object.keys(this.defaultComponentsFromPrimitive).forEach(function (name) {
+            self.defaultComponents[name] = self.defaultComponentsFromPrimitive[name];
+          });
         }
       },
 
-      attachedCallback: {
+      initXXX: {
         value: function () {
           var attr;
-          var Component;
           var initialComponents;
           var i;
           var mapping;
@@ -48,7 +52,7 @@ module.exports.registerPrimitive = function registerPrimitive (name, definition)
           var self = this;
 
           // Gather component data from default components.
-          initialComponents = utils.extend({}, this.defaultComponentsFromPrimitive);
+          initialComponents = this.defaultComponentsFromPrimitive = utils.extend({}, this.defaultComponentsFromPrimitive);
 
           // Gather component data from mixins.
           mixins = this.getAttribute('mixin');
@@ -58,7 +62,7 @@ module.exports.registerPrimitive = function registerPrimitive (name, definition)
               var mixinComponents = self.sceneEl.querySelector('#' + mixinId).componentCache;
               Object.keys(mixinComponents).forEach(function setComponent (name) {
                 initialComponents[name] = utils.extendDeep(
-                  initialComponents[name], mixinComponents[name]);
+                  initialComponents[name] || {}, mixinComponents[name]);
               });
             });
           }
@@ -77,23 +81,7 @@ module.exports.registerPrimitive = function registerPrimitive (name, definition)
               }
               continue;
             }
-
-            // Gather component data from components.
-            if (components[attr.name]) {
-              Component = components[attr.name];
-              if (Component.isSingleProp) {
-                initialComponents[attr.name] = attr.value;
-              } else {
-                initialComponents[attr.name] = utils.extendDeep(
-                  initialComponents[attr.name] || {}, Component.parse(attr.value || {}));
-              }
-            }
           }
-
-          // Set components.
-          Object.keys(initialComponents).forEach(function initComponent (componentName) {
-            self.setAttribute(componentName, initialComponents[componentName]);
-          });
         }
       },
 

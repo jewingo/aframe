@@ -26,7 +26,7 @@ var MULTIPLE_COMPONENT_DELIMITER = '__';
 var proto = Object.create(ANode.prototype, {
   defaultComponents: {
     value: {
-      position: '',
+      position: '2 2 2',
       rotation: '',
       scale: '',
       visible: ''
