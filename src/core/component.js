@@ -200,20 +200,27 @@ Component.prototype = {
    * @param {string} attrValue - HTML attribute value.
    *        If undefined, use the cached attribute value and continue updating properties.
    */
-  updateProperties: function (attrValue) {
+  updateProperties: function (attrValue, clobber) {
     var el = this.el;
     var isSinglePropSchema = isSingleProp(this.schema);
     var oldData = extendProperties({}, this.data, isSinglePropSchema);
+    var skipTypeChecking = typeof this.previousAttrValue === 'object' && attrValue === this.previousAttrValue;
+    var currentAttrValue = !clobber && this.attrValue;
+    this.previousAttrValue = attrValue;
 
-    if (attrValue !== undefined) { this.updateCachedAttrValue(attrValue); }
+    if (!el.hasLoaded) {
+      if (attrValue !== undefined) { this.updateCachedAttrValue(attrValue); }
+      return;
+    }
 
-    if (!el.hasLoaded) { return; }
+    attrValue = this.parseAttrValueForCache(attrValue);
 
     if (this.updateSchema) {
-      this.updateSchema(buildData(el, this.name, this.attrName, this.schema, this.attrValue,
-                                  true));
+      this.updateSchema(this.buildData(attrValue, currentAttrValue, true));
     }
-    this.data = buildData(el, this.name, this.attrName, this.schema, this.attrValue);
+    this.data = this.buildData(attrValue, currentAttrValue, false, skipTypeChecking);
+
+    if (attrValue !== undefined) { this.updateCachedAttrValue(attrValue); }
 
     if (!this.initialized) {
       // Component is being already initialized
@@ -236,7 +243,7 @@ Component.prototype = {
       }, false);
     } else {
       // Don't update if properties haven't changed
-      if (utils.deepEqual(oldData, this.data)) { return; }
+      if (!skipTypeChecking && utils.deepEqual(oldData, this.data)) { return; }
 
       // Update component.
       this.update(oldData);
@@ -281,6 +288,73 @@ Component.prototype = {
     utils.extend(extendedSchema, schemaAddon);
     this.schema = processSchema(extendedSchema);
     this.el.emit('schemachanged', {component: this.name});
+  },
+
+  /**
+   * Builds component data from the current state of the entity, ultimately
+   * updating this.data.
+   *
+   * If the component was detached completely, set data to null.
+   *
+   * Precedence:
+   * 1. Defaults data
+   * 2. Mixin data.
+   * 3. Attribute data.
+   *
+   * Finally coerce the data to the types of the defaults.
+   *
+   * @param {object} elData - Element current data.
+   * @param {object} oldElData - Element previous data.
+   * @param {boolean} silent - Suppress warning messages.
+   * @param {boolean} skipTypeChecking - Skip type checking and cohercion.
+   * @return {object} The component data
+   */
+  buildData: function (elData, oldElData, silent, skipTypeChecking) {
+    var self = this;
+    var componentDefined = elData !== undefined && elData !== null;
+    var data;
+    var schema = this.schema;
+    var isSinglePropSchema = isSingleProp(schema);
+    var mixinEls = this.el.mixinEls;
+
+    // 1. Default values (lowest precendence).
+    if (isSinglePropSchema) {
+      data = schema.default;
+    } else {
+      data = typeof oldElData === 'object' ? utils.extend({}, oldElData) : {};
+      Object.keys(schema).forEach(function applyDefault (key) {
+        var defaultValue = schema[key].default;
+        if (data[key]) { return; }
+        data[key] = defaultValue && defaultValue.constructor === Object
+          ? utils.extend({}, defaultValue)
+          : defaultValue;
+      });
+    }
+
+    // 2. Mixin values.
+    mixinEls.forEach(handleMixinUpdate);
+    function handleMixinUpdate (mixinEl) {
+      var mixinData = mixinEl.getAttribute(self.attrName);
+      if (mixinData) {
+        data = extendProperties(data, mixinData, isSinglePropSchema);
+      }
+    }
+
+    // 3. Attribute values (highest precendence).
+    if (componentDefined) {
+      if (isSinglePropSchema) {
+        if (skipTypeChecking === true) { return elData; }
+        return parseProperty(elData, schema);
+      }
+      data = extendProperties(data, elData, isSinglePropSchema);
+    } else {
+      if (skipTypeChecking === true) { return data; }
+      // Parse and coerce using the schema.
+      if (isSinglePropSchema) { return parseProperty(data, schema); }
+    }
+
+    if (skipTypeChecking === true) { return data; }
+    return parseProperties(data, schema, undefined, this.name, silent);
   }
 };
 
@@ -368,68 +442,6 @@ module.exports.registerComponent = function (name, definition) {
   };
   return NewComponent;
 };
-
-/**
- * Builds component data from the current state of the entity, ultimately
- * updating this.data.
- *
- * If the component was detached completely, set data to null.
- *
- * Precedence:
- * 1. Defaults data
- * 2. Mixin data.
- * 3. Attribute data.
- *
- * Finally coerce the data to the types of the defaults.
- *
- * @param {object} el - Element to build data from.
- * @param {object} name - Component name.
- * @param {object} attrName - Attribute name associated to the component.
- * @param {object} schema - Component schema.
- * @param {object} elData - Element current data.
- * @param {boolean} silent - Suppress warning messages.
- * @return {object} The component data
- */
-function buildData (el, name, attrName, schema, elData, silent) {
-  var componentDefined = elData !== undefined && elData !== null;
-  var data;
-  var isSinglePropSchema = isSingleProp(schema);
-  var mixinEls = el.mixinEls;
-
-  // 1. Default values (lowest precendence).
-  if (isSinglePropSchema) {
-    data = schema.default;
-  } else {
-    data = {};
-    Object.keys(schema).forEach(function applyDefault (key) {
-      var defaultValue = schema[key].default;
-      data[key] = defaultValue && defaultValue.constructor === Object
-        ? utils.extend({}, defaultValue)
-        : defaultValue;
-    });
-  }
-
-  // 2. Mixin values.
-  mixinEls.forEach(handleMixinUpdate);
-  function handleMixinUpdate (mixinEl) {
-    var mixinData = mixinEl.getAttribute(attrName);
-    if (mixinData) {
-      data = extendProperties(data, mixinData, isSinglePropSchema);
-    }
-  }
-
-  // 3. Attribute values (highest precendence).
-  if (componentDefined) {
-    if (isSinglePropSchema) { return parseProperty(elData, schema); }
-    data = extendProperties(data, elData, isSinglePropSchema);
-    return parseProperties(data, schema, undefined, name, silent);
-  } else {
-     // Parse and coerce using the schema.
-    if (isSinglePropSchema) { return parseProperty(data, schema); }
-    return parseProperties(data, schema, undefined, name, silent);
-  }
-}
-module.exports.buildData = buildData;
 
 /**
 * Object extending with checking for single-property schema.

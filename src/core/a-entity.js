@@ -513,7 +513,7 @@ var proto = Object.create(ANode.prototype, {
    * @param {object} attrValue - The value of the DOM attribute.
    */
   updateComponent: {
-    value: function (attr, attrValue) {
+    value: function (attr, attrValue, clobber) {
       var component = this.components[attr];
       var isDefault = attr in this.defaultComponents;
       if (component) {
@@ -522,7 +522,7 @@ var proto = Object.create(ANode.prototype, {
           return;
         }
         // Component already initialized. Update component.
-        component.updateProperties(attrValue);
+        component.updateProperties(attrValue, clobber);
         return;
       }
       // Component not yet initialized. Initialize component.
@@ -682,6 +682,8 @@ var proto = Object.create(ANode.prototype, {
    */
   setAttribute: {
     value: function (attrName, arg1, arg2) {
+      var arg1Type = typeof arg1;
+      var clobber;
       var componentName;
       var isDebugMode;
 
@@ -690,12 +692,11 @@ var proto = Object.create(ANode.prototype, {
 
       // Determine which type of setAttribute to call based on the types of the arguments.
       if (COMPONENTS[componentName]) {
-        if (typeof arg1 === 'string' && typeof arg2 !== 'undefined') {
+        if (arg1Type === 'string' && typeof arg2 !== 'undefined') {
           singlePropertyUpdate(this, attrName, arg1, arg2);
-        } else if (typeof arg1 === 'object' && arg2 === true) {
-          multiPropertyClobber(this, attrName, arg1);
         } else {
-          componentUpdate(this, attrName, arg1);
+          clobber = arg1Type !== 'object' || (arg1Type === 'object' && arg2 === true);
+          this.updateComponent(attrName, arg1, clobber);
         }
 
         // In debug mode, write component data up to the DOM.
@@ -712,30 +713,6 @@ var proto = Object.create(ANode.prototype, {
        */
       function singlePropertyUpdate (el, componentName, propName, propertyValue) {
         el.updateComponentProperty(componentName, propName, propertyValue);
-      }
-
-      /**
-       * Just update multiple component properties at once for a multi-property component.
-       * >> setAttribute('foo', {bar: 'baz'})
-       */
-      function componentUpdate (el, componentName, propValue) {
-        var component = el.components[componentName];
-        if (component && typeof propValue === 'object') {
-          // Extend existing component attribute value.
-          el.updateComponent(
-            componentName,
-            utils.extendDeep(utils.extendDeep({}, component.attrValue), propValue));
-        } else {
-          el.updateComponent(componentName, propValue);
-        }
-      }
-
-      /**
-       * Pass in complete data set for a multi-property component.
-       * >> setAttribute('foo', {bar: 'baz'}, true)
-       */
-      function multiPropertyClobber (el, componentName, propObject) {
-        el.updateComponent(componentName, propObject);
       }
 
       /**
