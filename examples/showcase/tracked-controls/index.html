@@ -11,7 +11,7 @@
     <script src="shaders/skyGradient.js"></script>
   </head>
   <body>
-    <a-scene fog="color: #bc483e; near: 0; far: 65;">
+    <a-scene fog="color: #bc483e; near: 0; far: 65;" debug>
       <a-assets>
         <a-mixin id="cube"
                  geometry="primitive: box; height: 0.30; width: 0.30; depth: 0.30"
@@ -56,6 +56,7 @@
          <a-entity light="type: point; color: #f4f4f4; intensity: 0.6; distance: 0" position="-8 10 -18"></a-entity>
          <a-entity light="type: ambient; color: #f4f4f4; intensity: 0.4;" position="-8 10 -18"></a-entity>
       </a-entity>
+      <a-camera wasd-controls-enabled="false"></a-camera>
     </a-scene>
   </body>
 </html>

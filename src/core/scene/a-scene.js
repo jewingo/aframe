@@ -43,7 +43,8 @@ module.exports.AScene = registerElement('a-scene', {
         'inspector': '',
         'keyboard-shortcuts': '',
         'screenshot': '',
-        'vr-mode-ui': ''
+        'vr-mode-ui': '',
+        'spectator-camera': ''
       }
     },
 
@@ -557,6 +558,8 @@ module.exports.AScene = registerElement('a-scene', {
       value: function () {
         var effect = this.effect;
         var delta = this.clock.getDelta() * 1000;
+        var spectatorCamera = this.spectatorCameraEl && this.spectatorCameraEl.getObject3D('camera');
+        var vrDisplay = effect.getVRDisplay();
         this.time = this.clock.elapsedTime * 1000;
 
         if (this.isPlaying) { this.tick(this.time, delta); }
@@ -566,7 +569,14 @@ module.exports.AScene = registerElement('a-scene', {
 
         if (this.isPlaying) { this.tock(this.time, delta); }
 
-        this.effect.submitFrame();
+        effect.submitFrame();
+
+        if (spectatorCamera &&
+            this.is('vr-mode') &&
+            vrDisplay &&
+            vrDisplay.capabilities.hasExternalDisplay) {
+          this.renderer.render(this.object3D, spectatorCamera);
+        }
       },
       writable: true
     }

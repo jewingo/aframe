@@ -24,6 +24,7 @@ require('./text');
 require('./tracked-controls');
 require('./visible');
 require('./vive-controls');
+require('./vive-tracker-controls');
 require('./wasd-controls');
 
 require('./scene/canvas');
@@ -33,6 +34,7 @@ require('./scene/inspector');
 require('./scene/fog');
 require('./scene/keyboard-shortcuts');
 require('./scene/pool');
+require('./scene/spectator-camera');
 require('./scene/screenshot');
 require('./scene/stats');
 require('./scene/vr-mode-ui');

@@ -1,4 +1,3 @@
-var DEFAULT_HANDEDNESS = require('../constants').DEFAULT_HANDEDNESS;
 var AXIS_LABELS = ['x', 'y', 'z', 'w'];
 
 /**
@@ -36,7 +35,7 @@ module.exports.getGamepadsByPrefix = function (idPrefix) {
  */
 module.exports.checkControllerPresentAndSetup = function (component, idPrefix, queryObject) {
   var el = component.el;
-  var isPresent = isControllerPresent(component, idPrefix, queryObject);
+  var controller = isControllerPresent(component, idPrefix, queryObject);
 
   // If component was previously paused and now playing, re-add event listeners.
   // Handle the event listeners here since this helper method is control of calling
@@ -46,13 +45,13 @@ module.exports.checkControllerPresentAndSetup = function (component, idPrefix, q
   }
 
   // Nothing changed, no need to do anything.
-  if (isPresent === component.controllerPresent) { return isPresent; }
+  if (controller === component.controllerPresent) { return controller; }
 
-  component.controllerPresent = isPresent;
+  component.controller = controller;
 
   // Update controller presence.
-  if (isPresent) {
-    component.injectTrackedControls();
+  if (controller) {
+    component.injectTrackedControls(controller);
     component.addEventListeners();
     el.emit('controllerconnected', {name: component.name, component: component});
   } else {
@@ -69,7 +68,7 @@ module.exports.checkControllerPresentAndSetup = function (component, idPrefix, q
  * @param {object} queryObject - map of values to match (hand; index among controllers with idPrefix)
  */
 function isControllerPresent (component, idPrefix, queryObject) {
-  var isPresent = false;
+  var controller;
   var index = 0;
   var gamepad;
   var isPrefixMatch;
@@ -77,30 +76,31 @@ function isControllerPresent (component, idPrefix, queryObject) {
   var sceneEl = component.el.sceneEl;
 
   var trackedControlsSystem = sceneEl && sceneEl.systems['tracked-controls'];
-  if (!trackedControlsSystem) { return isPresent; }
+  if (!trackedControlsSystem) { return controller; }
   gamepads = trackedControlsSystem.controllers;
   if (!gamepads || gamepads.length === 0) {
     trackedControlsSystem.updateControllerList();
     gamepads = trackedControlsSystem.controllers;
   }
 
-  if (!gamepads) { return isPresent; }
+  if (!gamepads) { return controller; }
 
   for (var i = 0; i < gamepads.length; ++i) {
     gamepad = gamepads[i];
     isPrefixMatch = (!idPrefix || idPrefix === '' || gamepad.id.indexOf(idPrefix) === 0);
-    isPresent = isPrefixMatch;
-    if (isPresent && queryObject.hand) {
-      isPresent = (gamepad.hand || DEFAULT_HANDEDNESS) === queryObject.hand;
+    controller = isPrefixMatch && gamepad;
+    if (controller && queryObject.hand) {
+      controller = (gamepad.hand === queryObject.hand) && gamepad;
     }
-    if (isPresent && queryObject.index) {
-      isPresent = index === queryObject.index; // need to use count of gamepads with idPrefix
+    if (controller && queryObject.index) {
+      controller = (index === queryObject.index) && gamepad; // need to use count of gamepads with idPrefix
     }
-    if (isPresent) { break; }
+    if (controller) { break; }
     if (isPrefixMatch) { index++; } // update count of gamepads with idPrefix
   }
 
-  return isPresent;
+  if (controller) { controller.index = index; }
+  return controller;
 }
 
 module.exports.isControllerPresent = isControllerPresent;

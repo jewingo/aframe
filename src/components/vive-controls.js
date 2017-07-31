@@ -116,20 +116,17 @@ module.exports.Component = registerComponent('vive-controls', {
    * Until then, use hardcoded index.
    */
   checkIfControllerPresent: function () {
-    var data = this.data;
-    var controllerIndex = data.hand === 'right' ? 0 : data.hand === 'left' ? 1 : 2;
-    this.checkControllerPresentAndSetup(this, GAMEPAD_ID_PREFIX, {index: controllerIndex});
+    this.checkControllerPresentAndSetup(this, GAMEPAD_ID_PREFIX, {hand: this.data.hand});
   },
 
-  injectTrackedControls: function () {
+  injectTrackedControls: function (controller) {
     var el = this.el;
     var data = this.data;
 
     // If we have an OpenVR Gamepad, use the fixed mapping.
     el.setAttribute('tracked-controls', {
       idPrefix: GAMEPAD_ID_PREFIX,
-      // Hand IDs: 0 = right, 1 = left, 2 = anything else.
-      controller: data.hand === 'right' ? 0 : data.hand === 'left' ? 1 : 2,
+      controller: controller.index,
       rotationOffset: data.rotationOffset
     });
 

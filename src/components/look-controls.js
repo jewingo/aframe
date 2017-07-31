@@ -237,7 +237,7 @@ module.exports.Component = registerComponent('look-controls', {
       currentHMDPosition = this.calculateHMDPosition();
       deltaHMDPosition.copy(currentHMDPosition).sub(previousHMDPosition);
 
-      if (isNullVector(deltaHMDPosition)) { return; }
+      if (isNullVector(deltaHMDPosition) || !this.data.hmdEnabled) { return; }
 
       previousHMDPosition.copy(currentHMDPosition);
 
