@@ -14,12 +14,12 @@ module.exports.Component = registerComponent('gltf-model', {
     this.loader = new THREE.GLTFLoader();
   },
 
-  update: function () {
+  update: function (oldData) {
     var self = this;
     var el = this.el;
     var src = this.data;
 
-    if (!src) { return; }
+    if (!src || oldData === src) { return; }
 
     this.remove();
 
