@@ -33,6 +33,29 @@ module.exports.isNode = function (node) {
   return node.tagName.toLowerCase() in knownTags || node.isNode;
 };
 
+module.exports.define = function (tagName, obj) {
+  var proto = Object.getPrototypeOf(obj.prototype);
+  var newObj = obj;
+  var isANode = ANode && proto === ANode.prototype;
+  var isAEntity = AEntity && proto === AEntity.prototype;
+
+  if (isANode || isAEntity) { addTagName(tagName); }
+
+  // Wrap if element inherits from `ANode`.
+  if (isANode) {
+    newObj = class extends ANode {};
+    newObj = wrapANodeMethods(newObj);
+  }
+
+  // Wrap if element inherits from `AEntity`.
+  if (isAEntity) {
+    newObj = class extends AEntity {};
+    newObj = wrapAEntityMethods(newObj);
+  }
+
+  return window.customElements.define(tagName, newObj);
+};
+
 /**
  * @param {string} tagName - The name of the tag to register.
  * @param {object} obj - The prototype of the new element.
@@ -73,7 +96,7 @@ function wrapANodeMethods (obj) {
   var ANodeMethods = [
     'attachedCallback',
     'attributeChangedCallback',
-    'createdCallback'
+    'constructor'
   ];
   wrapMethods(newObj, ANodeMethods, obj, ANode.prototype);
   copyProperties(obj, newObj);
@@ -92,13 +115,13 @@ function wrapAEntityMethods (obj) {
   var ANodeMethods = [
     'attachedCallback',
     'attributeChangedCallback',
-    'createdCallback'
+    'constructor'
   ];
   var AEntityMethods = [
     'attachedCallback',
     'attributeChangedCallback',
     'createdCallback',
-    'detachedCallback'
+    'constructor'
   ];
 
   wrapMethods(newObj, ANodeMethods, obj, ANode.prototype);
