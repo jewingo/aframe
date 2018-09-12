@@ -79,6 +79,7 @@ require('./extras/components/');
 require('./extras/primitives/');
 
 console.log('A-Frame Version: 0.8.2 (Date 2018-10-04, Commit #6deaea0)');
+
 console.log('three Version:', pkg.dependencies['three']);
 console.log('WebVR Polyfill Version:', pkg.dependencies['webvr-polyfill']);
 
