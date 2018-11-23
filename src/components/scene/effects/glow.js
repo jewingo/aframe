@@ -7,7 +7,7 @@ require('../../../../vendor/effects/GlowPass');
 
 registerEffect('glow', {
   schema: {
-    radius: {default: 0.01},
+    radius: {default: 0.01}
   },
   initPass: function () {
     var data = this.data;
