@@ -5,7 +5,7 @@
 THREE.EffectComposer = function ( renderer, renderTarget, effect ) {
 
   this.renderer = renderer;
-
+  
   window.addEventListener('vrdisplaypresentchange' , this.resize.bind(this));
 
   this.effect = effect;
@@ -152,7 +152,7 @@ Object.assign( THREE.EffectComposer.prototype, {
   },
 
   setSize: function ( width, height ) {
-
+    
     this.renderTarget1.setSize( width, height );
     this.renderTarget2.setSize( width, height );
 
