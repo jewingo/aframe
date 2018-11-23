@@ -1,6 +1,8 @@
-THREE.GlowPass = function ( resolution, strength, radius, threshold ) {
+THREE.GlowPass = function ( resolution, radius ) {
 
   THREE.Pass.call( this );
+
+  this.radius = radius;
 
   this.scene = new THREE.Scene();
 
@@ -11,17 +13,13 @@ THREE.GlowPass = function ( resolution, strength, radius, threshold ) {
 
   this.camera = new THREE.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 );
 
-  this.basic = new THREE.MeshBasicMaterial();
-
-  this.oldClearColor = new THREE.Color();
-  this.oldClearAlpha = 1;
-
   // Copy Color Step
   var targetParameters = {
     minFilter: THREE.LinearFilter,
     magFilter: THREE.LinearFilter,
-    format: THREE.RGBAFormat,
-    stencilBuffer: false
+    format: THREE.RGBFormat,
+    stencilBuffer: false,
+    depthBuffer: false
   };
 
   this.colorTarget = new THREE.WebGLRenderTarget(resolution.width, resolution.height, targetParameters);
@@ -37,9 +35,8 @@ THREE.GlowPass = function ( resolution, strength, radius, threshold ) {
     blending: THREE.NoBlending,
     depthTest: false,
     depthWrite: false,
-    transparent: true
+    transparent: false
   });
-
 
   // Glow Step
   this.glowTarget = new THREE.WebGLRenderTarget(resolution.width, resolution.height, targetParameters);
@@ -55,20 +52,7 @@ THREE.GlowPass = function ( resolution, strength, radius, threshold ) {
     blending: THREE.NoBlending,
     depthTest: false,
     depthWrite: false,
-    transparent: true
-  });
-
-  // Copy Step
-  var copyShader = THREE.CopyShader;
-  this.copyUniforms = THREE.UniformsUtils.clone(copyShader.uniforms);
-  this.materialCopy = new THREE.ShaderMaterial({
-    uniforms: this.copyUniforms,
-    vertexShader: copyShader.vertexShader,
-    fragmentShader: copyShader.fragmentShader,
-    blending: THREE.AdditiveBlending,
-    depthTest: false,
-    depthWrite: false,
-    transparent: true
+    transparent: false
   });
 };
 
@@ -81,23 +65,14 @@ THREE.GlowPass.prototype = Object.assign( Object.create( THREE.Pass.prototype ),
     var oldAutoClear = renderer.autoClear;
     renderer.autoClear = false;
 
-    renderer.setClearColor(new THREE.Color( 0, 0, 0 ), 0);
-
     this.quad.material = this.copyColorShaderMaterial;
+    this.copyColorUniforms["dilation"].value = this.radius;
     this.copyColorUniforms["tDiffuse"].value = readBuffer.texture;
-    renderer.render(this.scene, this.camera, this.colorTarget, true);
+    renderer.render(this.scene, this.camera, this.colorTarget, false);
 
     this.quad.material = this.glowShaderMaterial;
-    this.glowUniforms["tDiffuse"].value = this.colorTarget.texture;
-    renderer.render(this.scene, this.camera, this.glowTarget, true);
-
-    this.quad.material = this.materialCopy;
-    this.copyUniforms["tDiffuse"].value = this.colorTarget.texture;
-    renderer.render(this.scene, this.camera, undefined, false);
-
-    this.quad.material = this.materialCopy;
-    this.copyUniforms["tDiffuse"].value = this.glowTarget.texture;
-    renderer.render(this.scene, this.camera, undefined, false);
+    this.glowUniforms["tInput"].value = readBuffer.texture;
+    this.glowUniforms["tMask"].value = this.colorTarget.texture;
 
     if (this.renderToScreen) {
       renderer.render(this.scene, this.camera, undefined, false);
@@ -106,7 +81,6 @@ THREE.GlowPass.prototype = Object.assign( Object.create( THREE.Pass.prototype ),
     }
 
     // Restore renderer settings
-    renderer.setClearColor( this.oldClearColor, this.oldClearAlpha );
     renderer.autoClear = oldAutoClear;
   },
 
