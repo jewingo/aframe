@@ -3,6 +3,7 @@ THREE.CopyColorShader = {
   uniforms: {
 
     "tDiffuse": { value: null },
+    "dilation": { value: null },
 
   },
 
@@ -22,25 +23,16 @@ THREE.CopyColorShader = {
   fragmentShader: [
 
     "const float color_threshold = 0.5;",
-
     "const vec4 RED = vec4(1.0, 0.0, 0.0, 1.0);",
-    
     "const vec4 BLUE = vec4(0.0, 0.0, 1.0, 1.0);",
-
-    "const vec4 BLACK = vec4(0.0);",
-
-    "const vec4 WHITE = vec4(1.0);",
-
-    "const float W = 1.0;",
-
+    "const vec4 BLACK = vec4(vec3(0.0), 1.0);",
     "uniform float amount;",
-
     "uniform sampler2D tDiffuse;",
-
+    "uniform float dilation;",
     "varying vec2 vUv;",
 
     "bool isBlue(vec4 c) {",
-      "return c.r < color_threshold && c.g < color_threshold && c.b > 1.0 - color_threshold;", 
+      "return c.r < color_threshold && c.g < color_threshold && c.b > 1.0 - color_threshold;",
     "}",
 
     "bool isRed(vec4 c) {",
@@ -48,6 +40,7 @@ THREE.CopyColorShader = {
     "}",
 
     "vec4 dilate(vec2 uv, vec4 original){",
+      "uv = clamp(uv, vec2(0.0, 0.0), vec2(1.0, 1.0));",
       "vec4 color = texture2D(tDiffuse, uv);",
       "if (isBlue(color)) color = BLUE;",
       "else if (isRed(color)) color = RED;",
@@ -56,8 +49,7 @@ THREE.CopyColorShader = {
     "}",
 
     "void main() {",
-
-      // GLOW
+      "float W = dilation;",
       "vec4 color = vec4(0.0);",
       "color = dilate(vUv, color);",
 
