@@ -7,10 +7,7 @@
 THREE.CopyShader = {
 
   uniforms: {
-
-    "tDiffuse": { value: null },
-    "opacity":  { value: 1.0 }
-
+    "tDiffuse": { type: "t", value: null },
   },
 
   vertexShader: [
@@ -36,8 +33,8 @@ THREE.CopyShader = {
 
     "void main() {",
 
-      "vec4 texel = texture2D( tDiffuse, vUv );",
-      "gl_FragColor = opacity * texel;",
+      "vec4 texel = texture2D(tDiffuse, vUv);",
+      "gl_FragColor = texel;",
 
     "}"
 

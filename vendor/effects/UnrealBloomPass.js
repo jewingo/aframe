@@ -268,7 +268,7 @@ THREE.UnrealBloomPass.prototype = Object.assign( Object.create( THREE.Pass.proto
 
   getSeperableBlurMaterial: function ( kernelRadius ) {
 
-    return new THREE.ShaderMaterial( {
+    return new THREE.copyShaderMaterial( {
 
       defines: {
         "KERNEL_RADIUS": kernelRadius,
