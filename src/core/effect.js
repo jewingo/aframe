@@ -51,7 +51,8 @@ var proto = {
 
   initEffectComposer: function () {
     var sceneEl = this.el;
-    var effectComposer = sceneEl.effectComposer = new THREE.EffectComposer(sceneEl.renderer, undefined, sceneEl.effect);
+    var renderDepth = this.data['renderDepth'] || false;
+    var effectComposer = sceneEl.effectComposer = new THREE.EffectComposer(sceneEl.renderer, undefined, sceneEl.effect, renderDepth);
     var renderPass = new THREE.RenderPass(sceneEl.object3D, sceneEl.camera);
     effectComposer.addPass(renderPass);
     lastEffectInitialized = renderPass;
