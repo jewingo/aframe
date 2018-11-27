@@ -2,10 +2,10 @@
  * @author alteredq / http://alteredqualia.com/
  */
 
-THREE.EffectComposer = function ( renderer, renderTarget, effect ) {
+THREE.EffectComposer = function ( renderer, renderTarget, effect, renderDepth ) {
 
   this.renderer = renderer;
-  
+
   window.addEventListener('vrdisplaypresentchange' , this.resize.bind(this));
 
   this.effect = effect;
@@ -22,7 +22,9 @@ THREE.EffectComposer = function ( renderer, renderTarget, effect ) {
     var size = renderer.getDrawingBufferSize();
     renderTarget = new THREE.WebGLRenderTarget( size.width, size.height, parameters );
     renderTarget.texture.name = 'EffectComposer.rt1';
-
+    if (renderDepth) {
+      renderTarget.depthTexture = new THREE.DepthTexture();
+    }
   }
 
   this.renderTarget1 = renderTarget;
@@ -152,7 +154,7 @@ Object.assign( THREE.EffectComposer.prototype, {
   },
 
   setSize: function ( width, height ) {
-    
+
     this.renderTarget1.setSize( width, height );
     this.renderTarget2.setSize( width, height );
 

@@ -1,8 +1,11 @@
-THREE.GlowPass = function ( resolution, radius ) {
+THREE.GlowPass = function ( resolution, radius, intensity, threshold, useDepth ) {
 
   THREE.Pass.call( this );
 
   this.radius = radius;
+  this.intensity = intensity;
+  this.threshold = threshold;
+  this.useDepth = useDepth;
 
   this.scene = new THREE.Scene();
 
@@ -31,7 +34,7 @@ THREE.GlowPass = function ( resolution, radius ) {
   this.copyColorShaderMaterial = new THREE.ShaderMaterial({
     uniforms: this.copyColorUniforms,
     vertexShader: copyColorShader.vertexShader,
-    fragmentShader: copyColorShader.fragmentShader,
+    fragmentShader: useDepth ? copyColorShader.fragmentShader : copyColorShader.fragmentShaderNoDepth,
     blending: THREE.NoBlending,
     depthTest: false,
     depthWrite: false,
@@ -67,10 +70,16 @@ THREE.GlowPass.prototype = Object.assign( Object.create( THREE.Pass.prototype ),
 
     this.quad.material = this.copyColorShaderMaterial;
     this.copyColorUniforms["dilation"].value = this.radius;
+    this.copyColorUniforms["threshold"].value = this.threshold;
     this.copyColorUniforms["tDiffuse"].value = readBuffer.texture;
+    if (this.useDepth) {
+      this.copyColorUniforms["tDepth"].value = readBuffer.depthTexture;
+    }
     renderer.render(this.scene, this.camera, this.colorTarget, false);
 
     this.quad.material = this.glowShaderMaterial;
+    this.glowUniforms["intensity"].value = this.intensity;
+    this.glowUniforms["threshold"].value = this.threshold;
     this.glowUniforms["tInput"].value = readBuffer.texture;
     this.glowUniforms["tMask"].value = this.colorTarget.texture;
 

@@ -7,16 +7,16 @@
     <script src="../../../dist/aframe-master.js"></script>
   </head>
   <body>
-    <a-scene background="color: #001" effect-glow>
+    <a-scene background="color: #000" effect-glow="renderDepth:false">
       <a-box position="-0.2 0.5 -3" rotation="0 45 0" material="color: red; shader: flat"></a-box>
-      <a-box position="-2 0.5 -3" rotation="0 20 0" width="0.1" height="0.1" depth="1000" material="color: red; shader: flat"></a-box>
+      <a-box position="3 1.5 -3" rotation="10 20 0" width="0.2" height="0.2" depth="1000" material="color: red; shader: flat"></a-box>
       <a-sphere position="0 1.25 -5" radius="1.25" material="color: red; shader: flat"></a-sphere>
-      <a-cylinder position="0.2 0.75 -3" radius="0.5" height="1.5" material="color: blue; shader:flat"></a-cylinder>
+      <a-cylinder position="0.2 0.9 -3" radius="0.5" height="1.5" material="color: blue; shader:flat"></a-cylinder>
       <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#200"></a-plane>
-      <a-entity vive-controls="hand: left" oculus-touch-controls="hand: left">
-        <a-box position="0 -0.55 0" width="0.02" depth="0.02" height="0.9" material="shader: flat; color: red"></a-box>
-      </a-entity>
       <a-entity vive-controls="hand: right" oculus-touch-controls="hand: right">
+        <a-box position="0 -0.55 0" width="0.02" depth="0.02" height="0.9" material="shader: flat; color: blue"></a-box>
+      </a-entity>
+      <a-entity vive-controls="hand: left" oculus-touch-controls="hand: left">
         <a-box position="0 -0.55 0" width="0.02" depth="0.02" height="0.9" material="shader: flat; color: blue"></a-box>
       </a-entity>
     </a-scene>
