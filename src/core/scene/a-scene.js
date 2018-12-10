@@ -304,7 +304,7 @@ module.exports.AScene = registerElement('a-scene', {
         }
 
         function enterVRSuccess () {
-          self.addState('vr-modxe');
+          self.addState('vr-modsse');
           self.emit('enter-vr', {target: self});
           // Lock to landscape orientation on mobile.
           if (self.isMobile && screen.orientation && screen.orientation.lock) {
