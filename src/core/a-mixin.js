@@ -1,7 +1,7 @@
-/* global HTMLElement */
 var ANode = require('./a-node');
 var registerElement = require('./a-register-element').registerElement;
 var components = require('./component').components;
+var utils = require('../utils');
 
 var MULTIPLE_COMPONENT_DELIMITER = '__';
 
@@ -15,12 +15,14 @@ module.exports = registerElement('a-mixin', {
       value: function () {
         this.componentCache = {};
         this.id = this.getAttribute('id');
+        this.isMixin = true;
       }
     },
 
     attributeChangedCallback: {
       value: function (attr, oldVal, newVal) {
         this.cacheAttribute(attr, newVal);
+        this.updateEntities();
       }
     },
 
@@ -38,8 +40,8 @@ module.exports = registerElement('a-mixin', {
      */
     setAttribute: {
       value: function (attr, value) {
+        window.HTMLElement.prototype.setAttribute.call(this, attr, value);
         this.cacheAttribute(attr, value);
-        HTMLElement.prototype.setAttribute.call(this, attr, value);
       }
     },
 
@@ -48,11 +50,15 @@ module.exports = registerElement('a-mixin', {
      */
     cacheAttribute: {
       value: function (attr, value) {
-        var componentName = attr.split(MULTIPLE_COMPONENT_DELIMITER)[0];
-        var component = components[componentName];
+        var component;
+        var componentName;
+
+        // Get component data.
+        componentName = utils.split(attr, MULTIPLE_COMPONENT_DELIMITER)[0];
+        component = components[componentName];
         if (!component) { return; }
         if (value === undefined) {
-          value = HTMLElement.prototype.getAttribute.call(this, attr);
+          value = window.HTMLElement.prototype.getAttribute.call(this, attr);
         }
         this.componentCache[attr] = component.parseAttrValueForCache(value);
       }
@@ -65,7 +71,7 @@ module.exports = registerElement('a-mixin', {
     getAttribute: {
       value: function (attr) {
         return this.componentCache[attr] ||
-               HTMLElement.prototype.getAttribute.call(this, attr);
+               window.HTMLElement.prototype.getAttribute.call(this, attr);
       }
     },
 
@@ -90,15 +96,17 @@ module.exports = registerElement('a-mixin', {
      */
     updateEntities: {
       value: function () {
+        var entity;
+        var entities;
+        var i;
+
         if (!this.sceneEl) { return; }
-        var entities = this.sceneEl.querySelectorAll('[mixin~=' + this.id + ']');
-        for (var i = 0; i < entities.length; i++) {
-          var entity = entities[i];
-          if (!entity.hasLoaded) { continue; }
-          entity.registerMixin(this.id);
-          Object.keys(this.componentCache).forEach(function updateComponent (componentName) {
-            entity.updateComponent(componentName);
-          });
+
+        entities = this.sceneEl.querySelectorAll('[mixin~=' + this.id + ']');
+        for (i = 0; i < entities.length; i++) {
+          entity = entities[i];
+          if (!entity.hasLoaded || entity.isMixin) { continue; }
+          entity.mixinUpdate(this.id);
         }
       }
     }

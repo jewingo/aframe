@@ -8,6 +8,10 @@ var shouldCaptureKeyEvent = utils.shouldCaptureKeyEvent;
 
 var CLAMP_VELOCITY = 0.00001;
 var MAX_DELTA = 0.2;
+var KEYS = [
+  'KeyW', 'KeyA', 'KeyS', 'KeyD',
+  'ArrowUp', 'ArrowLeft', 'ArrowRight', 'ArrowDown'
+];
 
 /**
  * WASD component to control entities using WASD keys.
@@ -29,7 +33,6 @@ module.exports.Component = registerComponent('wasd-controls', {
   init: function () {
     // To keep track of the pressed keys.
     this.keys = {};
-
     this.velocity = new THREE.Vector3();
 
     // Bind methods and add event listeners.
@@ -44,25 +47,19 @@ module.exports.Component = registerComponent('wasd-controls', {
   tick: function (time, delta) {
     var data = this.data;
     var el = this.el;
-    var movementVector;
-    var position;
     var velocity = this.velocity;
 
-    // Use seconds.
-    delta = delta / 1000;
+    if (!velocity[data.adAxis] && !velocity[data.wsAxis] &&
+        isEmptyObject(this.keys)) { return; }
 
-    // Get velocity.
+    // Update velocity.
+    delta = delta / 1000;
     this.updateVelocity(delta);
+
     if (!velocity[data.adAxis] && !velocity[data.wsAxis]) { return; }
 
     // Get movement vector and translate position.
-    movementVector = this.getMovementVector(delta);
-    position = el.getAttribute('position');
-    el.setAttribute('position', {
-      x: position.x + movementVector.x,
-      y: position.y + movementVector.y,
-      z: position.z + movementVector.z
-    });
+    el.object3D.position.add(this.getMovementVector(delta));
   },
 
   remove: function () {
@@ -134,6 +131,7 @@ module.exports.Component = registerComponent('wasd-controls', {
     return function (delta) {
       var rotation = this.el.getAttribute('rotation');
       var velocity = this.velocity;
+      var xRotation;
 
       directionVector.copy(velocity);
       directionVector.multiplyScalar(delta);
@@ -141,10 +139,10 @@ module.exports.Component = registerComponent('wasd-controls', {
       // Absolute.
       if (!rotation) { return directionVector; }
 
-      if (!this.data.fly) { rotation.x = 0; }
+      xRotation = this.data.fly ? rotation.x : 0;
 
       // Transform direction relative to heading.
-      rotationEuler.set(THREE.Math.degToRad(rotation.x), THREE.Math.degToRad(rotation.y), 0);
+      rotationEuler.set(THREE.Math.degToRad(xRotation), THREE.Math.degToRad(rotation.y), 0);
       directionVector.applyEuler(rotationEuler);
       return directionVector;
     };
@@ -192,13 +190,18 @@ module.exports.Component = registerComponent('wasd-controls', {
     var code;
     if (!shouldCaptureKeyEvent(event)) { return; }
     code = event.code || KEYCODE_TO_CODE[event.keyCode];
-    this.keys[code] = true;
+    if (KEYS.indexOf(code) !== -1) { this.keys[code] = true; }
   },
 
   onKeyUp: function (event) {
     var code;
-    if (!shouldCaptureKeyEvent(event)) { return; }
     code = event.code || KEYCODE_TO_CODE[event.keyCode];
-    this.keys[code] = false;
+    delete this.keys[code];
   }
 });
+
+function isEmptyObject (keys) {
+  var key;
+  for (key in keys) { return false; }
+  return true;
+}
