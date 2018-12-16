@@ -79601,7 +79601,7 @@ _dereq_('./core/a-mixin');
 _dereq_('./extras/components/');
 _dereq_('./extras/primitives/');
 
-console.log('A-Frame Version: 0.8.2 (Date 2018-12-16, Commit #36655beea)');
+console.log('A-Frame Version: 0.8.2 (Date 2018-12-16, Commit #594a56c19)');
 console.log('three Version:', pkg.dependencies['three']);
 console.log('WebVR Polyfill Version:', pkg.dependencies['webvr-polyfill']);
 
@@ -81504,13 +81504,17 @@ var vrDisplay;
 if (navigator.xr) {
   navigator.xr.requestDevice().then(function (device) {
     device.supportsSession({immersive: true, exclusive: true}).then(function () {
+      var sceneEl = document.querySelector('a-scene');
       vrDisplay = device;
+      if (sceneEl) { sceneEl.emit('headsetconnected', {vrDisplay: vrDisplay}); }
     });
   });
 } else {
   if (navigator.getVRDisplays) {
     navigator.getVRDisplays().then(function (displays) {
+      var sceneEl = document.querySelector('a-scene');
       vrDisplay = displays.length && displays[0];
+      if (sceneEl) { sceneEl.emit('headsetconnected', {vrDisplay: vrDisplay}); }
     });
   }
 }
