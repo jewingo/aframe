@@ -72945,6 +72945,7 @@ module.exports.Component = registerComponent('tracked-controls-webxr', {
     var object3D = this.el.object3D;
     if (!this.controller || !sceneEl.frame) { return; }
     pose = sceneEl.frame.getInputPose(this.controller, sceneEl.frameOfReference);
+    if (!pose) { return; }
     object3D.matrix.elements = pose.targetRay.transformMatrix;
     object3D.matrix.decompose(object3D.position, object3D.rotation, object3D.scale);
   }
@@ -79601,7 +79602,7 @@ _dereq_('./core/a-mixin');
 _dereq_('./extras/components/');
 _dereq_('./extras/primitives/');
 
-console.log('A-Frame Version: 0.8.2 (Date 2018-12-16, Commit #594a56c19)');
+console.log('A-Frame Version: 0.8.2 (Date 2018-12-16, Commit #00bb13c5b)');
 console.log('three Version:', pkg.dependencies['three']);
 console.log('WebVR Polyfill Version:', pkg.dependencies['webvr-polyfill']);
 
