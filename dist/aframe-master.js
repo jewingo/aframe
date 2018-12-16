@@ -68292,7 +68292,7 @@ registerComponent('laser-controls', {
 
   config: {
     'daydream-controls': {
-      cursor: {downEvents: ['trackpaddown'], upEvents: ['trackpadup']}
+      cursor: {downEvents: ['trackpaddown', 'triggerdown'], upEvents: ['trackpadup', 'triggerup']}
     },
 
     'gearvr-controls': {
@@ -72568,6 +72568,7 @@ var EVENTS = {
  */
 module.exports.Component = registerComponent('tracked-controls-webvr', {
   schema: {
+    autoHide: {default: true},
     controller: {default: 0},
     id: {type: 'string', default: ''},
     hand: {type: 'string', default: ''},
@@ -72635,7 +72636,8 @@ module.exports.Component = registerComponent('tracked-controls-webvr', {
     this.controller = controller;
     // Legacy handle to the controller for old components.
     this.el.components['tracked-controls'].controller = controller;
-    this.el.object3D.visible = !!this.controller;
+
+    if (this.data.autoHide) { this.el.object3D.visible = !!this.controller; }
   },
 
   /**
@@ -72933,7 +72935,8 @@ module.exports.Component = registerComponent('tracked-controls-webxr', {
     );
     // Legacy handle to the controller for old components.
     this.el.components['tracked-controls'].controller = this.controller;
-    this.el.object3D.visible = !!this.controller;
+
+    if (this.data.autoHide) { this.el.object3D.visible = !!this.controller; }
   },
 
   tick: function () {
@@ -72962,6 +72965,7 @@ var registerComponent = _dereq_('../core/component').registerComponent;
  */
 module.exports.Component = registerComponent('tracked-controls', {
   schema: {
+    autoHide: {default: true},
     controller: {default: 0},
     id: {type: 'string', default: ''},
     hand: {type: 'string', default: ''},
@@ -79597,7 +79601,7 @@ _dereq_('./core/a-mixin');
 _dereq_('./extras/components/');
 _dereq_('./extras/primitives/');
 
-console.log('A-Frame Version: 0.8.2 (Date 2018-12-16, Commit #e4ce73420)');
+console.log('A-Frame Version: 0.8.2 (Date 2018-12-16, Commit #3f0d2f493)');
 console.log('three Version:', pkg.dependencies['three']);
 console.log('WebVR Polyfill Version:', pkg.dependencies['webvr-polyfill']);
 
