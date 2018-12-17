@@ -417,7 +417,7 @@ module.exports.AScene = registerElement('a-scene', {
         });
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.sortObjects = false;
-        this.effect = new THREE.VREffect(renderer);
+        this.effect = navigator.xr ? new THREE.XREffect(renderer) : new THREE.VREffect(renderer);
         this.effect.autoSubmitFrame = false;
       },
       writable: window.debug
@@ -562,7 +562,7 @@ module.exports.AScene = registerElement('a-scene', {
         if (this.isPlaying) { this.tick(this.time, delta); }
 
         this.animationFrameID = effect.requestAnimationFrame(this.render);
-        effect.render(this.object3D, this.camera, this.renderTarget);
+        // effect.render(this.object3D, this.camera, this.renderTarget);
 
         if (this.isPlaying) { this.tock(this.time, delta); }
 

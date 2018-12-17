@@ -1,6 +1,13 @@
 var THREE = require('../lib/three');
 var dolly = new THREE.Object3D();
 var controls = new THREE.VRControls(dolly);
+var xrDisplay;
+
+if (navigator.xr) {
+  navigator.xr.requestDevice().then(function (device) {
+    xrDisplay = device;
+  });
+}
 
 /**
  * Determine if a headset is connected by checking if the orientation is available.
@@ -8,6 +15,8 @@ var controls = new THREE.VRControls(dolly);
 function checkHeadsetConnected () {
   var orientation;
   var vrDisplay = controls.getVRDisplay();
+
+  if (xrDisplay) { return !!xrDisplay; }
 
   // If `isConnected` is available, just use that.
   if (vrDisplay && 'isConnected' in vrDisplay) { return vrDisplay.isConnected; }
