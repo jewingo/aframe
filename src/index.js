@@ -91,7 +91,7 @@ require('./extras/primitives/');
 
 console.log('A-Frame Version: 0.9.0 (Date 2019-02-07, Commit #faaca2b)');
 console.log('three Version (https://github.com/supermedium/three.js):',
-            pkg.dependencies['super-three']);
+            pkg.dependencies['three']);
 console.log('WebVR Polyfill Version:', pkg.dependencies['webvr-polyfill']);
 
 module.exports = window.AFRAME = {
